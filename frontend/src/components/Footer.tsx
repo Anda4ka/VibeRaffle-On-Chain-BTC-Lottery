@@ -2,43 +2,55 @@ import { CONTRACT_ADDR, shortAddr } from '../config';
 
 export default function Footer() {
   return (
-    <footer className="w-full max-w-6xl mx-auto px-4 py-8 mt-12 border-t border-white/5">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
-        <div className="flex items-center gap-4">
-          <a
-            href="https://opnet.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-neon-violet transition-colors"
-          >
-            OPNet
-          </a>
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-neon-violet transition-colors"
-          >
-            GitHub
-          </a>
-          <a
-            href="https://x.com/AiAndark"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-neon-violet transition-colors"
-          >
-            Twitter
-          </a>
+    <footer style={{
+      borderTop: '1px solid rgba(124,58,237,0.12)',
+      marginTop: 40, padding: '32px 24px',
+    }}>
+      <div style={{
+        maxWidth: 960, margin: '0 auto',
+        display: 'flex', flexWrap: 'wrap',
+        alignItems: 'center', justifyContent: 'space-between',
+        gap: 16,
+      }}>
+        {/* Links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          {[
+            { label: 'OPNet', href: 'https://opnet.org' },
+            { label: 'GitHub', href: 'https://github.com/Anda4ka/VibeRaffle-On-Chain-BTC-Lottery' },
+            { label: 'Twitter', href: 'https://x.com/AiAndark' },
+          ].map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: 13, color: '#475569',
+                textDecoration: 'none', fontWeight: 500,
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#a855f7'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#475569'; }}
+            >
+              {label}
+            </a>
+          ))}
         </div>
 
-        <div className="text-center">
-          <p>Provably fair. No custody. Events-based payouts.</p>
+        {/* Center */}
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: 12, color: '#475569' }}>
+            Provably fair · No custody · Events-based payouts
+          </p>
           {CONTRACT_ADDR && (
-            <p className="text-gray-700 mt-1 font-mono">{shortAddr(CONTRACT_ADDR)}</p>
+            <p style={{ fontSize: 11, color: '#334155', marginTop: 4, fontFamily: 'monospace' }}>
+              {shortAddr(CONTRACT_ADDR)}
+            </p>
           )}
         </div>
 
-        <p className="text-gray-700">
+        {/* Right */}
+        <p style={{ fontSize: 12, color: '#334155' }}>
           Built with VibeCode on OP_NET
         </p>
       </div>

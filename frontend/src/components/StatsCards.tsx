@@ -4,69 +4,55 @@ interface Props {
   round: RoundInfo | null;
 }
 
-function Card({ label, value, sub, accent = 'violet' }: {
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: 'violet' | 'green' | 'pink' | 'blue';
-}) {
-  const accents = {
-    violet: 'border-neon-violet/20 hover:border-neon-violet/40 hover:shadow-glow-violet',
-    green: 'border-neon-green/20 hover:border-neon-green/40 hover:shadow-glow-green',
-    pink: 'border-neon-pink/20 hover:border-neon-pink/40 hover:shadow-glow-pink',
-    blue: 'border-neon-blue/20 hover:border-neon-blue/40',
-  };
-  const textColors = {
-    violet: 'text-neon-violet',
-    green: 'text-neon-green',
-    pink: 'text-neon-pink',
-    blue: 'text-neon-blue',
-  };
-
-  return (
-    <div className={`glass p-5 sm:p-6 text-center transition-all duration-300 hover:scale-[1.02] ${accents[accent]}`}>
-      <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">{label}</p>
-      <p className={`text-2xl sm:text-3xl font-extrabold ${textColors[accent]} tabular-nums`}>{value}</p>
-      {sub && <p className="text-xs text-gray-600 mt-1">{sub}</p>}
-    </div>
-  );
-}
-
 export default function StatsCards({ round }: Props) {
   if (!round) return null;
 
   const price = Number(round.ticketPrice);
-  const pool = Number(round.prizePool);
-  const fee = Number(round.feePercent);
-  const winnerPayout = pool > 0 ? Math.floor(pool * (100 - fee) / 100) : 0;
+  const pool  = Number(round.prizePool);
+  const fee   = Number(round.feePercent);
+  const winnerPct = 100 - fee;
+
+  const cards = [
+    { label: 'TICKET PRICE', value: price > 0 ? price.toLocaleString() : '—', sub: 'sats', color: '#7c3aed' },
+    { label: 'TICKETS SOLD', value: round.totalTickets.toLocaleString(), sub: `${round.totalTickets} participant${round.totalTickets !== 1n ? 's' : ''}`, color: '#a855f7' },
+    { label: 'PRIZE POOL',   value: pool > 0 ? pool.toLocaleString() : '0', sub: 'sats', color: '#10b981' },
+    { label: 'WINNER GETS',  value: `${winnerPct}%`, sub: 'of pool', color: '#ec4899' },
+  ];
 
   return (
-    <section className="w-full max-w-4xl mx-auto px-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card
-          label="Ticket Price"
-          value={price > 0 ? price.toLocaleString() : '-'}
-          sub="sats"
-          accent="violet"
-        />
-        <Card
-          label="Tickets Sold"
-          value={round.totalTickets.toLocaleString()}
-          sub={`${round.totalTickets} participant${round.totalTickets !== 1n ? 's' : ''}`}
-          accent="blue"
-        />
-        <Card
-          label="Prize Pool"
-          value={pool > 0 ? pool.toLocaleString() : '0'}
-          sub="sats"
-          accent="green"
-        />
-        <Card
-          label="Winner Gets"
-          value={winnerPayout > 0 ? winnerPayout.toLocaleString() : '0'}
-          sub={`${100 - fee}% of pool`}
-          accent="pink"
-        />
+    <section style={{ maxWidth: 900, margin: '0 auto 40px', padding: '0 24px' }}>
+      <div className="stats-grid">
+        {cards.map(({ label, value, sub, color }) => (
+          <div
+            key={label}
+            style={{
+              background: 'rgba(16,19,42,0.8)',
+              border: '1px solid rgba(124,58,237,0.15)',
+              borderRadius: 16, padding: '20px 16px',
+              textAlign: 'center',
+              transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
+              cursor: 'default',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-3px)';
+              e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)';
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(124,58,237,0.15)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(124,58,237,0.15)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <div style={{
+              fontSize: 10, fontWeight: 600,
+              color: '#475569', letterSpacing: '0.12em',
+              marginBottom: 10, textTransform: 'uppercase',
+            }}>{label}</div>
+            <div style={{ fontSize: 32, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+            <div style={{ fontSize: 11, color: '#475569', marginTop: 6, fontWeight: 500 }}>{sub}</div>
+          </div>
+        ))}
       </div>
     </section>
   );

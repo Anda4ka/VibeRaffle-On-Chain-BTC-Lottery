@@ -27,25 +27,70 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="w-full max-w-4xl mx-auto px-4 py-12 sm:py-16">
-      <h3 className="text-2xl sm:text-3xl font-extrabold text-center text-white mb-10">
-        How It <span className="text-neon-violet">Works</span>
+    <section style={{
+      maxWidth: 960, margin: '0 auto',
+      padding: '60px 24px 40px',
+    }}>
+      <h3 style={{
+        fontSize: 28, fontWeight: 800,
+        textAlign: 'center', marginBottom: 40, color: 'white',
+      }}>
+        How It{' '}
+        <span style={{ color: '#a855f7' }}>Works</span>
       </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {steps.map((step) => (
+      <div className="hiw-grid">
+        {steps.map(step => (
           <div
             key={step.num}
-            className="glass p-6 text-center hover:border-neon-violet/30 transition-all duration-300 hover:scale-[1.03] group"
+            style={{
+              background: 'rgba(16,19,42,0.8)',
+              border: '1px solid rgba(124,58,237,0.15)',
+              borderRadius: 18, padding: '28px 20px',
+              textAlign: 'center',
+              transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
+              cursor: 'default',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)';
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(124,58,237,0.15)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(124,58,237,0.15)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           >
-            <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-neon-violet/10 border border-neon-violet/20 flex items-center justify-center group-hover:bg-neon-violet/20 transition-colors">
-              <svg className="w-6 h-6 text-neon-violet" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={step.icon} />
+            <div style={{
+              width: 48, height: 48, margin: '0 auto 16px',
+              borderRadius: 14,
+              background: 'rgba(124,58,237,0.12)',
+              border: '1px solid rgba(124,58,237,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg
+                width={24} height={24}
+                fill="none" stroke="#a855f7"
+                viewBox="0 0 24 24"
+                strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              >
+                <path d={step.icon} />
               </svg>
             </div>
-            <span className="text-[10px] text-neon-violet/50 font-bold tracking-widest">{step.num}</span>
-            <h4 className="text-lg font-bold text-white mt-1 mb-2">{step.title}</h4>
-            <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
+            <span style={{
+              fontSize: 10, fontWeight: 700,
+              color: 'rgba(168,85,247,0.5)',
+              letterSpacing: '0.15em',
+            }}>{step.num}</span>
+            <h4 style={{
+              fontSize: 16, fontWeight: 700,
+              color: 'white', margin: '6px 0 10px',
+            }}>{step.title}</h4>
+            <p style={{
+              fontSize: 12, color: '#64748b',
+              lineHeight: 1.6,
+            }}>{step.desc}</p>
           </div>
         ))}
       </div>

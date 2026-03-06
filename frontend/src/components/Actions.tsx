@@ -12,57 +12,92 @@ interface Props {
   onCreateRound: (price: bigint, duration: bigint) => Promise<unknown>;
 }
 
-function ActionButton({
-  label,
-  onClick,
-  disabled,
-  variant = 'violet',
+function ActionBtn({
+  label, onClick, disabled, color,
 }: {
   label: string;
   onClick: () => void;
   disabled: boolean;
-  variant?: 'violet' | 'pink' | 'green';
+  color: 'violet' | 'green' | 'pink';
 }) {
   const [pending, setPending] = useState(false);
 
-  const colors = {
-    violet: 'from-neon-violet to-purple-600 hover:shadow-glow-violet text-white',
-    pink:   'from-neon-pink to-rose-600 hover:shadow-glow-pink text-white',
-    green:  'from-neon-green/90 to-emerald-500 hover:shadow-glow-green text-black',
+  const gradients = {
+    violet: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+    green:  'linear-gradient(135deg, #10b981, #34d399)',
+    pink:   'linear-gradient(135deg, #ec4899, #f472b6)',
   };
+  const shadows = {
+    violet: '0 4px 20px rgba(124,58,237,0.35)',
+    green:  '0 4px 20px rgba(16,185,129,0.35)',
+    pink:   '0 4px 20px rgba(236,72,153,0.35)',
+  };
+  const textColor = color === 'green' ? 'black' : 'white';
 
   const handleClick = async () => {
     setPending(true);
     try { await onClick(); }
-    catch (e: any) { alert(e?.message ?? String(e)); }
+    catch (e: unknown) { alert((e as Error)?.message ?? String(e)); }
     finally { setPending(false); }
   };
+
+  const isDisabled = disabled || pending;
 
   return (
     <button
       onClick={handleClick}
-      disabled={disabled || pending}
-      className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-[1.02]
-        bg-gradient-to-r ${colors[variant]}
-        disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100`}
+      disabled={isDisabled}
+      style={{
+        width: '100%', padding: '13px 0',
+        borderRadius: 12, border: 'none',
+        fontSize: 15, fontWeight: 700, color: textColor,
+        background: isDisabled ? 'rgba(255,255,255,0.08)' : gradients[color],
+        cursor: isDisabled ? 'not-allowed' : 'pointer',
+        boxShadow: isDisabled ? 'none' : shadows[color],
+        transition: 'all 0.2s ease',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        opacity: isDisabled && !pending ? 0.4 : 1,
+      }}
+      onMouseEnter={e => { if (!isDisabled) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       {pending ? (
-        <span className="flex items-center justify-center gap-2">
-          <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <>
+          <span style={{
+            width: 16, height: 16,
+            border: '2px solid rgba(255,255,255,0.3)',
+            borderTopColor: 'white',
+            borderRadius: '50%',
+            animation: 'spin 0.7s linear infinite',
+            display: 'inline-block',
+          }} />
           Sending...
-        </span>
+        </>
       ) : label}
     </button>
   );
 }
 
+const cardStyle: React.CSSProperties = {
+  background: 'rgba(16,19,42,0.9)',
+  border: '1px solid rgba(124,58,237,0.2)',
+  borderRadius: 20,
+  padding: '24px 24px',
+  backdropFilter: 'blur(20px)',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', marginTop: 6, padding: '10px 12px',
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(124,58,237,0.2)',
+  borderRadius: 10, color: 'white', fontSize: 14,
+  outline: 'none', transition: 'border-color 0.2s',
+};
+
 export default function Actions({ round, account, busy, onDraw, onClaim, onWithdrawFee, onCreateRound }: Props) {
   const [price, setPrice]       = useState('10000');
   const [duration, setDuration] = useState('144');
 
-  // Compare against the deployer's P2TR address (returned by requestAccounts()).
-  // The contract stores the ML-DSA/P2OP address which differs from P2TR,
-  // so we compare against the known P2TR from VITE_OWNER_P2TR.
   const isOwner = !!(account && OWNER_P2TR &&
     OWNER_P2TR.toLowerCase() === account.toLowerCase());
 
@@ -74,19 +109,17 @@ export default function Actions({ round, account, busy, onDraw, onClaim, onWithd
 
   const hasAnyButton = canDraw || canClaim || canWithdraw || canCreate;
 
-  // Round complete, not the admin — show hint
   if (!hasAnyButton && round.isDrawn && round.prizeClaimed && round.feeClaimed) {
     return (
-      <section className="w-full max-w-md mx-auto px-4 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-        <div className="glass p-5 text-center border border-white/5">
-          <p className="text-sm text-gray-400">Round complete. Waiting for the next round.</p>
-          {account && (
-            <p className="text-xs text-gray-600 mt-2">
-              Connected as non-admin — only the contract owner can start a new round.
-            </p>
-          )}
+      <section style={{ maxWidth: 460, margin: '0 auto 40px', padding: '0 24px' }}>
+        <div style={{ ...cardStyle, textAlign: 'center' }}>
+          <p style={{ color: '#64748b', fontSize: 14 }}>
+            Round complete. Waiting for the next round.
+          </p>
           {!account && (
-            <p className="text-xs text-gray-600 mt-2">Connect the owner wallet to start a new round.</p>
+            <p style={{ color: '#475569', fontSize: 12, marginTop: 8 }}>
+              Connect the owner wallet to start a new round.
+            </p>
           )}
         </div>
       </section>
@@ -96,55 +129,76 @@ export default function Actions({ round, account, busy, onDraw, onClaim, onWithd
   if (!hasAnyButton) return null;
 
   return (
-    <section className="w-full max-w-md mx-auto px-4 flex flex-col gap-4 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+    <section style={{
+      maxWidth: 460, margin: '0 auto 60px',
+      padding: '0 24px',
+      display: 'flex', flexDirection: 'column', gap: 16,
+    }}>
 
-      {/* ── Draw Winner ─────────────────────────────────────────────── */}
+      {/* Draw Winner */}
       {canDraw && (
-        <ActionButton
-          label="🎲 Draw Winner"
-          onClick={onDraw}
-          disabled={busy || !account}
-          variant="violet"
-        />
-      )}
-
-      {/* ── Claim Prize ─────────────────────────────────────────────── */}
-      {canClaim && (
-        <div className="glass p-5 neon-border border-neon-green/30">
-          <p className="text-xs text-gray-400 text-center mb-3">
-            Winner can claim their prize on-chain
+        <div style={cardStyle}>
+          <p style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', marginBottom: 14 }}>
+            Round has ended — trigger the provably fair draw
           </p>
-          <ActionButton
-            label="🏆 Claim Prize"
-            onClick={onClaim}
+          <ActionBtn
+            label="🎲 Draw Winner"
+            onClick={onDraw}
             disabled={busy || !account}
-            variant="green"
+            color="violet"
           />
           {!account && (
-            <p className="text-xs text-gray-500 text-center mt-2">Connect wallet to claim</p>
+            <p style={{ color: '#475569', fontSize: 12, textAlign: 'center', marginTop: 8 }}>
+              Connect wallet to draw
+            </p>
           )}
         </div>
       )}
 
-      {/* ── Withdraw Fee (owner) ─────────────────────────────────────── */}
-      {canWithdraw && (
-        <ActionButton
-          label="💸 Withdraw Fee (Owner)"
-          onClick={onWithdrawFee}
-          disabled={busy}
-          variant="pink"
-        />
+      {/* Claim Prize */}
+      {canClaim && (
+        <div style={cardStyle}>
+          <p style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', marginBottom: 14 }}>
+            Winner can claim their prize on-chain
+          </p>
+          <ActionBtn
+            label="🏆 Claim Prize"
+            onClick={onClaim}
+            disabled={busy || !account}
+            color="green"
+          />
+          {!account && (
+            <p style={{ color: '#475569', fontSize: 12, textAlign: 'center', marginTop: 8 }}>
+              Connect wallet to claim
+            </p>
+          )}
+        </div>
       )}
 
-      {/* ── Admin: Create New Round ──────────────────────────────────── */}
+      {/* Withdraw Fee */}
+      {canWithdraw && (
+        <div style={cardStyle}>
+          <ActionBtn
+            label="💸 Withdraw Fee (Owner)"
+            onClick={onWithdrawFee}
+            disabled={busy}
+            color="pink"
+          />
+        </div>
+      )}
+
+      {/* Admin: Create New Round */}
       {canCreate && (
-        <div className="glass p-5 neon-border border-neon-violet/30">
-          <h4 className="text-sm font-bold text-neon-violet mb-4 flex items-center gap-2">
-            <span className="text-base">⚙️</span> Admin: Create New Round
+        <div style={cardStyle}>
+          <h4 style={{
+            fontSize: 14, fontWeight: 700, color: '#a855f7',
+            marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            ⚙️ Admin: Create New Round
           </h4>
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div>
-              <label className="text-[10px] text-gray-500 uppercase tracking-wider">
+              <label style={{ fontSize: 10, fontWeight: 600, color: '#64748b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 Ticket Price (sats)
               </label>
               <input
@@ -152,12 +206,13 @@ export default function Actions({ round, account, busy, onDraw, onClaim, onWithd
                 min="1"
                 value={price}
                 onChange={e => setPrice(e.target.value)}
-                className="w-full mt-1 px-3 py-2 rounded-lg bg-surface-300 border border-white/10
-                  text-white text-sm focus:outline-none focus:border-neon-violet/50"
+                style={inputStyle}
+                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.5)'; }}
+                onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.2)'; }}
               />
             </div>
             <div>
-              <label className="text-[10px] text-gray-500 uppercase tracking-wider">
+              <label style={{ fontSize: 10, fontWeight: 600, color: '#64748b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 Duration (blocks)
               </label>
               <input
@@ -165,16 +220,17 @@ export default function Actions({ round, account, busy, onDraw, onClaim, onWithd
                 min="1"
                 value={duration}
                 onChange={e => setDuration(e.target.value)}
-                className="w-full mt-1 px-3 py-2 rounded-lg bg-surface-300 border border-white/10
-                  text-white text-sm focus:outline-none focus:border-neon-violet/50"
+                style={inputStyle}
+                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.5)'; }}
+                onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.2)'; }}
               />
             </div>
           </div>
-          <ActionButton
+          <ActionBtn
             label="🚀 Create New Round"
             onClick={() => onCreateRound(BigInt(price), BigInt(duration))}
             disabled={busy}
-            variant="violet"
+            color="violet"
           />
         </div>
       )}

@@ -17,75 +17,68 @@ export default function App() {
   const busy = txPending || loading;
 
   return (
-    <div className="min-h-screen bg-surface bg-grid relative">
-      {/* Background orbs */}
-      <div className="orb orb-1" />
-      <div className="orb orb-2" />
-      <div className="orb orb-3" />
-
-      {/* Toast notifications */}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Toaster
         position="top-right"
         toastOptions={{
           style: {
-            background: '#1a1a2e',
-            color: '#f1f1f1',
+            background: '#10132a',
+            color: '#e2e8f0',
             border: '1px solid rgba(124, 58, 237, 0.3)',
             borderRadius: '12px',
           },
         }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <Header account={account} onConnect={connectWallet} loading={loading} />
+      <Header account={account} onConnect={connectWallet} loading={loading} />
 
-        {/* Error banner */}
-        {error && (
-          <div className="mx-auto max-w-4xl w-full px-4 mt-2">
-            <div className="px-4 py-3 rounded-xl bg-red-900/20 border border-red-500/30 text-sm text-red-400 flex items-center justify-between">
-              <span>{error}</span>
-              <button onClick={refresh} className="text-red-300 hover:text-white text-xs ml-4">Retry</button>
-            </div>
+      {error && (
+        <div style={{ maxWidth: 900, margin: '12px auto 0', padding: '0 24px', width: '100%' }}>
+          <div style={{
+            padding: '12px 16px', borderRadius: 12,
+            background: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.3)',
+            fontSize: 13, color: '#f87171',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span>{error}</span>
+            <button
+              onClick={refresh}
+              style={{ background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer', fontSize: 12, marginLeft: 12 }}
+            >Retry</button>
           </div>
-        )}
+        </div>
+      )}
 
-        <Hero round={round} currentBlock={currentBlock} />
+      <Hero round={round} currentBlock={currentBlock} />
 
-        <StatsCards round={round} />
+      <StatsCards round={round} />
 
-        {round && (
-          <>
-            <div className="my-6" />
-            <BuyTickets
-              round={round}
-              account={account}
-              busy={busy}
-              myTickets={myTickets}
-              onBuy={buyTickets}
-              onConnect={connectWallet}
-            />
-          </>
-        )}
+      {round && (
+        <BuyTickets
+          round={round}
+          account={account}
+          busy={busy}
+          myTickets={myTickets}
+          onBuy={buyTickets}
+          onConnect={connectWallet}
+        />
+      )}
 
-        {round && (
-          <>
-            <div className="my-4" />
-            <Actions
-              round={round}
-              account={account}
-              busy={busy}
-              onDraw={drawWinner}
-              onClaim={claimPrize}
-              onWithdrawFee={withdrawFee}
-              onCreateRound={createRound}
-            />
-          </>
-        )}
+      {round && (
+        <Actions
+          round={round}
+          account={account}
+          busy={busy}
+          onDraw={drawWinner}
+          onClaim={claimPrize}
+          onWithdrawFee={withdrawFee}
+          onCreateRound={createRound}
+        />
+      )}
 
-        <HowItWorks />
-        <Footer />
-      </div>
+      <HowItWorks />
+      <Footer />
     </div>
   );
 }

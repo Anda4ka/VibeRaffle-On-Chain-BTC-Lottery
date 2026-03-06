@@ -11,18 +11,37 @@ interface Props {
   onConnect: () => void;
 }
 
+const S = {
+  card: {
+    background: 'rgba(16,19,42,0.9)',
+    border: '1px solid rgba(124,58,237,0.2)',
+    borderRadius: 24,
+    padding: '32px 28px',
+    backdropFilter: 'blur(20px)',
+  } as React.CSSProperties,
+  stepBtn: {
+    width: 44, height: 44,
+    background: 'rgba(124,58,237,0.15)',
+    border: '1px solid rgba(124,58,237,0.3)',
+    borderRadius: 12, fontSize: 22,
+    fontWeight: 700, color: '#a855f7',
+    cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    transition: 'all 0.2s',
+  } as React.CSSProperties,
+};
+
 export default function BuyTickets({ round, account, busy, myTickets, onBuy, onConnect }: Props) {
-  const [count, setCount] = useState(1);
+  const [count, setCount]   = useState(1);
   const [buying, setBuying] = useState(false);
 
-  const price = round.ticketPrice;
-  const total = price * BigInt(count);
-  const totalSats = Number(total);
+  const price     = round.ticketPrice;
+  const totalSats = Number(price * BigInt(count));
 
-  const totalTickets = Number(round.totalTickets);
-  const afterBuy = myTickets + count;
-  const afterTotal = totalTickets + count;
-  const winChance = afterTotal > 0 ? (afterBuy / afterTotal) * 100 : 0;
+  const totalTickets  = Number(round.totalTickets);
+  const afterBuy      = myTickets + count;
+  const afterTotal    = totalTickets + count;
+  const winChance     = afterTotal > 0 ? (afterBuy / afterTotal) * 100 : 0;
   const currentChance = totalTickets > 0 && myTickets > 0
     ? (myTickets / totalTickets) * 100
     : 0;
@@ -36,10 +55,10 @@ export default function BuyTickets({ round, account, busy, myTickets, onBuy, onC
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#7c3aed', '#00ff9d', '#ff00aa', '#F7931A'],
+        colors: ['#7c3aed', '#10b981', '#ec4899', '#F7931A'],
       });
-    } catch (e: any) {
-      alert(e?.message ?? String(e));
+    } catch (e: unknown) {
+      alert((e as Error)?.message ?? String(e));
     } finally {
       setBuying(false);
     }
@@ -48,71 +67,103 @@ export default function BuyTickets({ round, account, busy, myTickets, onBuy, onC
   if (round.isDrawn || price === 0n) return null;
 
   return (
-    <section className="w-full max-w-md mx-auto px-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-      <div className="glass-strong p-6 sm:p-8 neon-border">
-        <h3 className="text-2xl font-extrabold text-center text-white mb-6">
-          Buy Tickets
-        </h3>
+    <section style={{ maxWidth: 460, margin: '0 auto 60px', padding: '0 24px' }}>
+      <div style={S.card}>
+        <h2 style={{
+          fontSize: 22, fontWeight: 800,
+          textAlign: 'center', marginBottom: 8, color: 'white',
+        }}>Buy Tickets</h2>
+        <p style={{
+          fontSize: 12, color: '#64748b',
+          textAlign: 'center', marginBottom: 28,
+        }}>
+          More tickets = higher chance to win
+        </p>
 
-        {/* My tickets + current chance */}
+        {/* My tickets — current state */}
         {account && myTickets > 0 && (
-          <div className="glass p-3 mb-5 rounded-xl border border-neon-violet/20">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-400">Your tickets</span>
-              <span className="font-bold text-neon-violet">{myTickets} / {totalTickets}</span>
+          <div style={{
+            background: 'rgba(124,58,237,0.06)',
+            border: '1px solid rgba(124,58,237,0.2)',
+            borderRadius: 12, padding: '14px 16px',
+            marginBottom: 20,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+              <span style={{ color: '#94a3b8' }}>Your tickets</span>
+              <span style={{ fontWeight: 700, color: '#a855f7' }}>{myTickets} / {totalTickets}</span>
             </div>
-            <div className="flex justify-between items-center text-sm mt-1">
-              <span className="text-gray-400">Win chance</span>
-              <span className="font-bold text-neon-green">{currentChance.toFixed(1)}%</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+              <span style={{ color: '#94a3b8' }}>Win chance</span>
+              <span style={{ fontWeight: 700, color: '#10b981' }}>{currentChance.toFixed(1)}%</span>
             </div>
-            <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-neon-violet to-neon-green transition-all duration-500"
-                style={{ width: `${Math.min(currentChance, 100)}%` }}
-              />
+            <div style={{
+              marginTop: 10, height: 4, borderRadius: 4,
+              background: 'rgba(255,255,255,0.08)', overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: 4,
+                background: 'linear-gradient(90deg, #7c3aed, #10b981)',
+                width: `${Math.min(currentChance, 100)}%`,
+                transition: 'width 0.5s ease',
+              }} />
             </div>
           </div>
         )}
 
-        {/* Counter */}
-        <div className="flex items-center justify-center gap-4 mb-6">
+        {/* Stepper */}
+        <div style={{
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'center', gap: 16,
+          marginBottom: 20,
+        }}>
           <button
+            style={S.stepBtn}
             onClick={() => setCount(c => Math.max(1, c - 1))}
-            className="w-12 h-12 rounded-xl bg-surface-200 border border-white/10 text-white text-xl font-bold hover:bg-surface-300 hover:border-neon-violet/30 transition-all"
-          >
-            -
-          </button>
-          <div className="text-center min-w-[80px]">
-            <span className="text-4xl font-extrabold text-white tabular-nums">{count}</span>
-            <p className="text-xs text-gray-500">ticket{count !== 1 ? 's' : ''}</p>
+          >−</button>
+
+          <div style={{ textAlign: 'center', minWidth: 80 }}>
+            <div style={{ fontSize: 48, fontWeight: 900, color: 'white', lineHeight: 1 }}>{count}</div>
+            <div style={{
+              fontSize: 11, color: '#64748b',
+              fontWeight: 600, letterSpacing: '0.1em', marginTop: 2,
+            }}>
+              TICKET{count !== 1 ? 'S' : ''}
+            </div>
           </div>
+
           <button
+            style={S.stepBtn}
             onClick={() => setCount(c => c + 1)}
-            className="w-12 h-12 rounded-xl bg-surface-200 border border-white/10 text-white text-xl font-bold hover:bg-surface-300 hover:border-neon-violet/30 transition-all"
-          >
-            +
-          </button>
+          >+</button>
         </div>
 
-        {/* Price breakdown */}
-        <div className="glass p-4 mb-4 text-center">
-          <p className="text-sm text-gray-400">
-            {count} x {Number(price).toLocaleString()} sats
-          </p>
-          <p className="text-3xl font-extrabold text-neon-green green-text mt-1">
-            {totalSats.toLocaleString()} sats
-          </p>
-          <p className="text-xs text-gray-600 mt-1">
-            ~{(totalSats / 100_000_000).toFixed(6)} BTC
-          </p>
+        {/* Price summary */}
+        <div style={{
+          background: 'rgba(124,58,237,0.06)',
+          border: '1px solid rgba(124,58,237,0.15)',
+          borderRadius: 14, padding: '16px 20px',
+          marginBottom: 16, textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>
+            {count} × {Number(price).toLocaleString()} sats
+          </div>
+          <div style={{ fontSize: 32, fontWeight: 900, color: '#10b981', lineHeight: 1 }}>
+            {totalSats.toLocaleString()}
+          </div>
+          <div style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>
+            SATS · ~{(totalSats / 100_000_000).toFixed(6)} BTC
+          </div>
         </div>
 
-        {/* After-buy chance preview */}
+        {/* After-buy win chance preview */}
         {account && afterTotal > 0 && (
-          <p className="text-xs text-center text-gray-500 mb-4">
+          <p style={{
+            fontSize: 12, textAlign: 'center',
+            color: '#475569', marginBottom: 20,
+          }}>
             After buying:{' '}
-            <span className="text-neon-violet font-semibold">{afterBuy}</span> tickets →{' '}
-            <span className="text-neon-green font-semibold">{winChance.toFixed(1)}%</span> win chance
+            <span style={{ color: '#a855f7', fontWeight: 700 }}>{afterBuy}</span> tickets →{' '}
+            <span style={{ color: '#10b981', fontWeight: 700 }}>{winChance.toFixed(1)}%</span> win chance
           </p>
         )}
 
@@ -120,16 +171,33 @@ export default function BuyTickets({ round, account, busy, myTickets, onBuy, onC
         <button
           onClick={handleBuy}
           disabled={busy || buying}
-          className="w-full py-4 rounded-xl font-extrabold text-lg transition-all duration-300 relative overflow-hidden
-            bg-gradient-to-r from-neon-green/90 to-emerald-500 text-black
-            hover:from-neon-green hover:to-emerald-400 hover:shadow-glow-green hover:scale-[1.02]
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          style={{
+            width: '100%', padding: '14px 0',
+            borderRadius: 14, border: 'none',
+            fontSize: 16, fontWeight: 800, color: 'black',
+            background: busy || buying
+              ? 'rgba(16,185,129,0.4)'
+              : 'linear-gradient(135deg, #10b981, #34d399)',
+            cursor: busy || buying ? 'not-allowed' : 'pointer',
+            boxShadow: busy || buying ? 'none' : '0 4px 24px rgba(16,185,129,0.35)',
+            transition: 'all 0.2s ease',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}
+          onMouseEnter={e => { if (!busy && !buying) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
           {buying ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            <>
+              <span style={{
+                width: 18, height: 18,
+                border: '2px solid rgba(0,0,0,0.4)',
+                borderTopColor: 'black',
+                borderRadius: '50%',
+                animation: 'spin 0.7s linear infinite',
+                display: 'inline-block',
+              }} />
               Processing...
-            </span>
+            </>
           ) : account ? (
             `Buy ${count} Ticket${count !== 1 ? 's' : ''} Now`
           ) : (

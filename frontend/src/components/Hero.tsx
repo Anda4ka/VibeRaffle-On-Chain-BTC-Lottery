@@ -19,26 +19,36 @@ function useCountdown(endBlock: bigint, currentBlock: bigint) {
   const blocksLeft = endBlock > currentBlock ? Number(endBlock - currentBlock) : 0;
   if (blocksLeft === 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, ended: true };
 
-  // ~5 min per block on OPNet testnet
+  void now;
   const secondsLeft = blocksLeft * 300;
-  const days = Math.floor(secondsLeft / 86400);
-  const hours = Math.floor((secondsLeft % 86400) / 3600);
+  const days    = Math.floor(secondsLeft / 86400);
+  const hours   = Math.floor((secondsLeft % 86400) / 3600);
   const minutes = Math.floor((secondsLeft % 3600) / 60);
   const seconds = Math.floor(secondsLeft % 60);
-
-  // suppress unused var warning
-  void now;
 
   return { days, hours, minutes, seconds, ended: false };
 }
 
 function TimerBox({ value, label }: { value: number; label: string }) {
   return (
-    <div className="glass-strong p-3 sm:p-4 text-center min-w-[70px] neon-border">
-      <div className="text-2xl sm:text-4xl font-extrabold text-neon-violet neon-text tabular-nums">
+    <div className="timer-box" style={{
+      background: 'rgba(124,58,237,0.12)',
+      border: '1px solid rgba(124,58,237,0.25)',
+      borderRadius: 14, padding: '14px 20px',
+      minWidth: 72, textAlign: 'center',
+    }}>
+      <div className="timer-box-num" style={{
+        fontSize: 36, fontWeight: 800,
+        color: '#a855f7', lineHeight: 1,
+        fontVariantNumeric: 'tabular-nums',
+      }}>
         {String(value).padStart(2, '0')}
       </div>
-      <div className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mt-1">{label}</div>
+      <div style={{
+        fontSize: 9, fontWeight: 600,
+        color: '#64748b', letterSpacing: '0.1em',
+        marginTop: 6, textTransform: 'uppercase',
+      }}>{label}</div>
     </div>
   );
 }
@@ -46,58 +56,127 @@ function TimerBox({ value, label }: { value: number; label: string }) {
 export default function Hero({ round, currentBlock }: Props) {
   const prizePool = round?.prizePool ?? 0n;
   const sats = Number(prizePool);
-  const btc = (sats / 100_000_000).toFixed(6);
   const { days, hours, minutes, seconds, ended } = useCountdown(round?.endBlock ?? 0n, currentBlock);
+  const roundNum = round?.roundNumber !== undefined ? Number(round.roundNumber) : 1;
 
   return (
-    <section className="w-full max-w-4xl mx-auto text-center px-4 py-8 sm:py-16 animate-slide-up">
-      {/* Prize amount */}
-      <div className="mb-2">
-        <p className="text-xs sm:text-sm text-gray-500 uppercase tracking-widest mb-3">Current Prize Pool</p>
-        <h2 className="text-5xl sm:text-7xl font-black text-white green-text animate-float">
-          {sats > 0 ? sats.toLocaleString() : '0'}
-        </h2>
-        <p className="text-lg sm:text-xl text-neon-green/70 font-medium mt-1">
-          sats {sats > 0 && <span className="text-gray-500">({btc} BTC)</span>}
-        </p>
+    <section style={{
+      textAlign: 'center',
+      padding: '60px 24px 40px',
+      maxWidth: 700,
+      margin: '0 auto',
+    }}>
+      {/* Badge */}
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        background: 'rgba(124,58,237,0.1)',
+        border: '1px solid rgba(124,58,237,0.3)',
+        borderRadius: 20, padding: '4px 14px',
+        fontSize: 11, fontWeight: 600,
+        color: '#a855f7', letterSpacing: '0.1em',
+        marginBottom: 24,
+      }}>
+        🎰 ROUND #{roundNum} · {round?.isDrawn ? 'COMPLETE' : round ? 'LIVE NOW' : 'LOADING...'}
+      </div>
+
+      {/* Label */}
+      <div style={{
+        fontSize: 12, fontWeight: 600,
+        color: '#64748b', letterSpacing: '0.15em',
+        marginBottom: 12,
+      }}>
+        CURRENT PRIZE POOL
+      </div>
+
+      {/* Prize number */}
+      <div style={{
+        fontSize: 80, fontWeight: 900, lineHeight: 1,
+        color: '#10b981',
+        animation: 'prizeGlow 3s ease-in-out infinite',
+      }}>
+        {sats > 0 ? sats.toLocaleString() : '0'}
+      </div>
+      <div style={{
+        fontSize: 14, fontWeight: 600,
+        color: '#10b981', opacity: 0.7,
+        marginTop: 6, marginBottom: 36,
+        letterSpacing: '0.2em',
+      }}>
+        SATS
       </div>
 
       {/* Countdown */}
       {round && !round.isDrawn && !ended && (
-        <div className="mt-8">
-          <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">Round Ends In</p>
-          <div className="flex justify-center gap-2 sm:gap-4">
+        <>
+          <div style={{
+            fontSize: 11, fontWeight: 600,
+            color: '#64748b', letterSpacing: '0.15em',
+            marginBottom: 16,
+          }}>
+            ROUND ENDS IN
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
             <TimerBox value={days} label="Days" />
             <TimerBox value={hours} label="Hours" />
             <TimerBox value={minutes} label="Mins" />
             <TimerBox value={seconds} label="Secs" />
           </div>
-          <p className="text-xs text-gray-600 mt-3">
-            Block {currentBlock.toLocaleString()} / {round.endBlock.toLocaleString()}
+          <div style={{ marginTop: 20, fontSize: 12, color: '#475569', fontWeight: 500 }}>
+            Block{' '}
+            <span style={{ color: '#7c3aed', fontWeight: 700 }}>
+              {currentBlock.toLocaleString()}
+            </span>
+            {' / '}
+            <span style={{ color: '#64748b' }}>
+              {round.endBlock.toLocaleString()}
+            </span>
+          </div>
+        </>
+      )}
+
+      {/* Round ended — ready to draw */}
+      {round && !round.isDrawn && ended && round.totalTickets > 0n && (
+        <div style={{
+          marginTop: 24,
+          background: 'rgba(236,72,153,0.1)',
+          border: '1px solid rgba(236,72,153,0.3)',
+          borderRadius: 16, padding: '20px 28px',
+          display: 'inline-block',
+        }}>
+          <p style={{ color: '#ec4899', fontWeight: 700, fontSize: 18 }}>
+            Round Ended — Ready to Draw!
+          </p>
+          <p style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>
+            Anyone can trigger the draw after block {(round.endBlock + 2n).toLocaleString()}
           </p>
         </div>
       )}
 
-      {/* Round ended / drawn states */}
-      {round && !round.isDrawn && ended && round.totalTickets > 0n && (
-        <div className="mt-8 glass-strong p-6 neon-border inline-block">
-          <p className="text-neon-pink font-bold text-lg animate-pulse-slow">Round Ended - Ready to Draw!</p>
-          <p className="text-xs text-gray-500 mt-1">Anyone can trigger the draw after block {(round.endBlock + 2n).toLocaleString()}</p>
-        </div>
-      )}
-
+      {/* Winner selected */}
       {round?.isDrawn && (
-        <div className="mt-8 glass-strong p-6 border border-neon-green/30 inline-block">
-          <p className="text-neon-green font-bold text-lg">Winner Selected!</p>
-          <p className="text-xs text-gray-400 mt-2 font-mono break-all max-w-md mx-auto">{round.winner}</p>
+        <div style={{
+          marginTop: 24,
+          background: 'rgba(16,185,129,0.1)',
+          border: '1px solid rgba(16,185,129,0.3)',
+          borderRadius: 16, padding: '20px 28px',
+          display: 'inline-block',
+          maxWidth: 480,
+          margin: '24px auto 0',
+        }}>
+          <p style={{ color: '#10b981', fontWeight: 700, fontSize: 18, marginBottom: 8 }}>
+            🏆 Winner Selected!
+          </p>
+          <p style={{
+            color: '#94a3b8', fontSize: 11, fontFamily: 'monospace',
+            wordBreak: 'break-all',
+          }}>{round.winner}</p>
           {!round.prizeClaimed && (
-            <p className="text-xs text-neon-pink mt-2 animate-pulse-slow">Prize awaiting claim...</p>
-          )}
-          {round.prizeClaimed && !round.feeClaimed && (
-            <p className="text-xs text-neon-green/60 mt-2">Prize claimed ✓</p>
+            <p style={{ color: '#ec4899', fontSize: 12, marginTop: 8, fontWeight: 600 }}>
+              Prize awaiting claim...
+            </p>
           )}
           {round.prizeClaimed && round.feeClaimed && (
-            <p className="text-xs text-gray-500 mt-2">Round complete ✓</p>
+            <p style={{ color: '#64748b', fontSize: 12, marginTop: 8 }}>Round complete ✓</p>
           )}
         </div>
       )}
