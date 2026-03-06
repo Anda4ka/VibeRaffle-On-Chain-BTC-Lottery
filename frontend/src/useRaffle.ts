@@ -28,7 +28,8 @@ export interface RoundInfo {
 }
 
 // ── ABI ─────────────────────────────────────────────────────────────────────
-const ABI = [
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ABI: any[] = [
   { name: 'getRoundInfo', type: 'function', constant: true, inputs: [], outputs: [
     { name: 'ticketPrice',  type: 'UINT256' },
     { name: 'endBlock',     type: 'UINT64'  },
